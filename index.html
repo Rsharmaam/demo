@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ad Platform Test Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .ad-slot {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .ad-label {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ad Platform Test Website</h1>
+    <p>This page simulates a publisher's website to test ad delivery.</p>
+
+    <!-- Ad Slots -->
+    <div class="ad-slot">
+        <span class="ad-label">Header Ad Slot</span>
+        <div id="header-ad"></div>
+    </div>
+
+    <div class="ad-slot">
+        <span class="ad-label">Sidebar Ad Slot</span>
+        <div id="sidebar-ad"></div>
+    </div>
+
+    <!-- Controls -->
+    <div>
+        <button onclick="loadAds()">Refresh Ads</button>
+        <input type="text" id="publisher-url" placeholder="Your Publisher URL" value="test-website.com">
+    </div>
+
+    <script>
+        // Replace with your ad server URL
+        const AD_SERVER = 'http://localhost:3000'; 
+
+        async function fetchAd(slot) {
+            const publisherUrl = document.getElementById('publisher-url').value || 'test-website.com';
+            const response = await fetch(`${AD_SERVER}/api/ads/fetch?siteUrl=${publisherUrl}&slot=${slot}`);
+            return await response.json();
+        }
+
+        function displayAd(ad, containerId) {
+            const container = document.getElementById(containerId);
+            if (ad.error) {
+                container.innerHTML = `<p style="color:red">${ad.error}</p>`;
+            } else {
+                container.innerHTML = `
+                    <a href="${ad.clickUrl}" target="_blank">
+                        <img src="${ad.imageUrl}" style="max-width:100%; max-height:250px;">
+                    </a>
+                    <p>Ad ID: ${ad.adId || 'N/A'}</p>
+                `;
+            }
+        }
+
+        async function loadAds() {
+            try {
+                const headerAd = await fetchAd('header');
+                const sidebarAd = await fetchAd('sidebar');
+                
+                displayAd(headerAd, 'header-ad');
+                displayAd(sidebarAd, 'sidebar-ad');
+            } catch (error) {
+                console.error('Error loading ads:', error);
+                alert('Failed to load ads. Check console for details.');
+            }
+        }
+
+        // Load ads when page opens
+        window.onload = loadAds;
+    </script>
+</body>
+</html>

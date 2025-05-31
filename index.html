@@ -1,99 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ad Platform Test Website</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .ad-slot {
-            border: 2px dashed #ccc;
-            padding: 20px;
-            margin: 30px 0;
-            text-align: center;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .ad-label {
-            color: #666;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 15px;
-            background: #4285f4;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin: 5px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Demo Ad Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    #ad-slot {
+      width: 300px;
+      height: 250px;
+      margin: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    img {
+      max-width: 100%;
+    }
+    .ad-text {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h1>Ad Platform Test Website</h1>
-    <p>This page simulates a publisher's website to test ad delivery.</p>
+  <h1>🧪 Demo Ad Website</h1>
+  <div id="ad-slot">Loading ad...</div>
 
-    <!-- Ad Slots -->
-    <div class="ad-slot">
-        <span class="ad-label">Header Ad Slot</span>
-        <div id="header-ad"></div>
-    </div>
+  <script>
+    const websiteId = 'YOUR_REGISTERED_WEBSITE_ID'; // <-- Replace this
+    const slotSize = '300x250'; // Adjust as needed
+    const backendURL = 'http://localhost:5000'; // Replace with deployed URL if needed
 
-    <div class="ad-slot">
-        <span class="ad-label">Sidebar Ad Slot</span>
-        <div id="sidebar-ad"></div>
-    </div>
-
-    <!-- Controls -->
-    <div>
-        <button onclick="loadAds()">Refresh Ads</button>
-        <input type="text" id="publisher-url" placeholder="Your Publisher URL" value="test-website.com">
-    </div>
-
-    <script>
-        // Replace with your ad server URL
-        const AD_SERVER = 'ad-push.vercel.app'; 
-
-        async function fetchAd(slot) {
-            const publisherUrl = document.getElementById('publisher-url').value || 'test-website.com';
-            const response = await fetch(`${AD_SERVER}/api/ads/fetch?siteUrl=${publisherUrl}&slot=${slot}`);
-            return await response.json();
+    fetch(`${backendURL}/serve-ad?websiteId=${websiteId}&slotSize=${slotSize}`)
+      .then(res => res.json())
+      .then(ad => {
+        if (!ad || !ad.imageUrl) {
+          document.getElementById('ad-slot').innerText = 'No matching ad found.';
+          return;
         }
 
-        function displayAd(ad, containerId) {
-            const container = document.getElementById(containerId);
-            if (ad.error) {
-                container.innerHTML = `<p style="color:red">${ad.error}</p>`;
-            } else {
-                container.innerHTML = `
-                    <a href="${ad.clickUrl}" target="_blank">
-                        <img src="${ad.imageUrl}" style="max-width:100%; max-height:250px;">
-                    </a>
-                    <p>Ad ID: ${ad.adId || 'N/A'}</p>
-                `;
-            }
-        }
+        const adHtml = `
+          <a href="${ad.targetUrl}" target="_blank" onclick="registerClick('${ad.matchId}')">
+            <img src="${ad.imageUrl}" alt="Ad Image"/>
+            <div class="ad-text">${ad.adText}</div>
+          </a>
+        `;
 
-        async function loadAds() {
-            try {
-                const headerAd = await fetchAd('header');
-                const sidebarAd = await fetchAd('sidebar');
-                
-                displayAd(headerAd, 'header-ad');
-                displayAd(sidebarAd, 'sidebar-ad');
-            } catch (error) {
-                console.error('Error loading ads:', error);
-                alert('Failed to load ads. Check console for details.');
-            }
-        }
+        document.getElementById('ad-slot').innerHTML = adHtml;
+      })
+      .catch(err => {
+        document.getElementById('ad-slot').innerText = 'Error loading ad.';
+        console.error(err);
+      });
 
-        // Load ads when page opens
-        window.onload = loadAds;
-    </script>
+    function registerClick(matchId) {
+      fetch(`${backendURL}/match/${matchId}/click`, { method: 'POST' });
+    }
+  </script>
 </body>
 </html>

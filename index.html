@@ -31,9 +31,9 @@
   <div id="ad-slot">Loading ad...</div>
 
   <script>
-    const websiteId = 683b41651f946ca558d93d47; // <-- Replace this
+    const websiteId = '683b41651f946ca558d93d47'; // <-- Replace this
     const slotSize = '300x250'; // Adjust as needed
-    const backendURL = 'http://localhost:5000'; // Replace with deployed URL if needed
+    const backendURL = 'https://ad-backend-po6h.onrender.com'; // Replace with deployed URL if needed
 
     fetch(`${backendURL}/serve-ad?websiteId=${websiteId}&slotSize=${slotSize}`)
       .then(res => res.json())
